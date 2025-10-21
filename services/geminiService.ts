@@ -3,12 +3,11 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { FoodItem, MealSuggestion } from "../types";
 
 const API_KEY = process.env.API_KEY;
+let ai = null;
 
-if (!API_KEY) {
-  throw new Error("API_KEY environment variable not set");
+if (API_KEY) {
+  ai = new GoogleGenAI({ apiKey: API_KEY });
 }
-
-const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 const responseSchema = {
     type: Type.ARRAY,
@@ -66,28 +65,41 @@ export const fetchMealSuggestions = async (
     Provide the response strictly in the specified JSON format.
   `;
   
-  try {
-    const response = await ai.models.generateContent({
-        model: "gemini-2.5-flash",
-        contents: prompt,
-        config: {
-            responseMimeType: "application/json",
-            responseSchema: responseSchema,
-        },
-    });
 
-    const jsonText = response.text.trim();
-    const suggestions = JSON.parse(jsonText);
-    
-    // Basic validation to ensure the response is an array
-    if (!Array.isArray(suggestions)) {
+  if (!ai) {
+
+    throw new Error("API_KEY environment variable not set. Please set it in your .env.local file.");
+
+  } else {
+
+    try {
+      const response = await ai.models.generateContent({
+          model: "gemini-2.5-flash",
+          contents: prompt,
+          config: {
+              responseMimeType: "application/json",
+              responseSchema: responseSchema,
+          },
+      });
+
+      const jsonText = response.text.trim();
+      const suggestions = JSON.parse(jsonText);
+      
+      console.log(suggestions);
+
+      // Basic validation to ensure the response is an array
+      if (!Array.isArray(suggestions)) {
+        console.error("Invalid response format from Gemini API.");
         throw new Error("Invalid response format from Gemini API.");
+      }
+
+
+      return suggestions as MealSuggestion[];
+
+    } catch (error) {
+      console.error("Error fetching suggestions from Gemini API:", error);
+      throw new Error("Failed to parse or fetch suggestions from Gemini API.");
     }
 
-    return suggestions as MealSuggestion[];
-
-  } catch (error) {
-    console.error("Error fetching suggestions from Gemini API:", error);
-    throw new Error("Failed to parse or fetch suggestions from Gemini API.");
   }
 };

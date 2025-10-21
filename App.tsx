@@ -40,7 +40,8 @@ const App: React.FC = () => {
       const result = await fetchMealSuggestions(foodItems, totalCalories);
       setSuggestions(result);
     } catch (err) {
-      setError('Sorry, I couldn\'t fetch suggestions. Please try again.');
+      let errorMessage = `Sorry, I couldn\'t fetch suggestions. ${err.message}`;
+      setError(errorMessage);
       console.error(err);
     } finally {
       setIsLoading(false);
@@ -80,7 +81,11 @@ const App: React.FC = () => {
                       <LoadingSpinner />
                   </div>
               )}
-              {error && <p className="text-red-500 text-center">{error}</p>}
+              {error && (
+                <div className="text-center p-4 text-red-500 bg-red-100 rounded-lg">
+                  <p className="text-red-400">{error}</p>
+                </div>
+              )}
               {!isLoading && !error && suggestions.length === 0 && (
                 <div className="text-center py-10 text-slate-500 bg-slate-100 rounded-lg">
                   <p>Log some food and click "Get Suggestions"</p>
