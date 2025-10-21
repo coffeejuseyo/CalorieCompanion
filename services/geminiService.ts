@@ -85,8 +85,6 @@ export const fetchMealSuggestions = async (
       const jsonText = response.text.trim();
       const suggestions = JSON.parse(jsonText);
       
-      console.log(suggestions);
-
       // Basic validation to ensure the response is an array
       if (!Array.isArray(suggestions)) {
         console.error("Invalid response format from Gemini API.");
